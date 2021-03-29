@@ -1,10 +1,10 @@
 """ work with paths or files """
 
-# Copyright (C) 2020 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
+# Copyright (C) 2020-2021 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
 #
 # This file is part of < https://github.com/UsergeTeam/Userge > project,
 # and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/uaudith/Userge/blob/master/LICENSE >
+# Please see < https://github.com/UsergeTeam/Userge/blob/master/LICENSE >
 #
 # All rights reserved.
 
@@ -60,12 +60,11 @@ class _BaseLib:
     def progress(self) -> str:
         """ Returns progress """
         percentage = self.percentage
-        progress_str = "[{}{}]".format(
+        return "[{}{}]".format(
             ''.join((Config.FINISHED_PROGRESS_STR
-                     for i in range(floor(percentage / 5)))),
+                     for _ in range(floor(percentage / 5)))),
             ''.join((Config.UNFINISHED_PROGRESS_STR
-                     for i in range(20 - floor(percentage / 5)))))
-        return progress_str
+                     for _ in range(20 - floor(percentage / 5)))))
 
     @property
     def canceled(self) -> bool:
@@ -133,7 +132,7 @@ class PackLib(_BaseLib):
             u_type = RarFile
         else:
             u_type = tar_open
-        with u_type(self._file_path, 'r') as p_f:
+        with u_type(self._file_path) as p_f:
             for file_name in file_names:
                 if self._is_canceled:
                     if not self._output:
@@ -190,7 +189,6 @@ class PackLib(_BaseLib):
                 temp_file_names = []
         if temp_file_names:
             chunked_file_names.append(temp_file_names)
-        del temp_file_names, temp_size, min_chunk_size
         dir_name = splitext(basename(self._file_path))[0]
         self._final_file_path = join(
             Config.DOWN_PATH, dir_name.replace('.tar', '').replace('.', '_'))
@@ -200,10 +198,10 @@ class PackLib(_BaseLib):
     def get_info(self) -> Sequence[Tuple[str, int]]:
         """ Returns PACK info """
         if is_zipfile(self._file_path):
-            with ZipFile(self._file_path, 'r') as z_f:
+            with ZipFile(self._file_path) as z_f:
                 return tuple((z_.filename, z_.file_size) for z_ in z_f.infolist())
         elif is_rarfile(self._file_path):
-            with RarFile(self._file_path, 'r') as r_f:
+            with RarFile(self._file_path) as r_f:
                 return tuple((r_.filename, r_.file_size) for r_ in r_f.infolist())
         else:
             with tar_open(self._file_path, 'r') as t_f:
@@ -244,12 +242,11 @@ class SCLib(_BaseLib):
     def progress(self) -> str:
         """ Returns progress """
         percentage = self.percentage
-        progress_str = "[{}{}]".format(
+        return "[{}{}]".format(
             ''.join((Config.FINISHED_PROGRESS_STR
-                     for i in range(floor(percentage / 5)))),
+                     for _ in range(floor(percentage / 5)))),
             ''.join((Config.UNFINISHED_PROGRESS_STR
-                     for i in range(20 - floor(percentage / 5)))))
-        return progress_str
+                     for _ in range(20 - floor(percentage / 5)))))
 
     @property
     def speed(self) -> float:
@@ -341,10 +338,7 @@ class SCLib(_BaseLib):
     'usage': "{tr}ls [path]\n{tr}ls -d : default path"}, allow_channels=False)
 async def ls_dir(message: Message) -> None:
     """ list dir """
-    if '-d' in message.flags:
-        path = Config.DOWN_PATH
-    else:
-        path = message.input_str or '.'
+    path = Config.DOWN_PATH if '-d' in message.flags else message.input_str or '.'
     if not exists(path):
         await message.err("path not exists!")
         return
@@ -579,7 +573,7 @@ async def zip_(message: Message) -> None:
     'header': "Tar file / folder",
     'usage': "{tr}tar [file path | folder path]"})
 async def tar_(message: Message) -> None:
-    """ tar fils """
+    """ tar files """
     await _pack_helper(message, True)
 
 
